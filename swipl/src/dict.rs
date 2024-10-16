@@ -247,7 +247,7 @@ unsafe impl<'a> Unifiable for DictBuilder<'a> {
         let dict_term = context.new_term_ref();
         self.put(&dict_term);
 
-        let result = unsafe { fli::PL_unify(dict_term.term_ptr(), term.term_ptr()) != 0 };
+        let result = unsafe { fli::PL_unify(dict_term.term_ptr(), term.term_ptr()) };
         unsafe {
             dict_term.reset();
         };
@@ -271,7 +271,7 @@ impl<'a> Term<'a> {
         let term = context.new_term_ref();
 
         let get_result =
-            unsafe { fli::PL_get_dict_key(key_atom, self.term_ptr(), term.term_ptr()) != 0 };
+            unsafe { fli::PL_get_dict_key(key_atom, self.term_ptr(), term.term_ptr()) };
         std::mem::drop(alloc); // purely to get rid of the never-read warning
 
         let result = if unsafe { fli::pl_default_exception() != 0 } {
@@ -304,7 +304,7 @@ impl<'a> Term<'a> {
         let (key_atom, alloc) = key.atom_ptr();
 
         let result =
-            unsafe { fli::PL_get_dict_key(key_atom, self.term_ptr(), term.term_ptr()) != 0 };
+            unsafe { fli::PL_get_dict_key(key_atom, self.term_ptr(), term.term_ptr()) };
         std::mem::drop(alloc); // purely to get rid of the never-read warning
 
         if unsafe { fli::pl_default_exception() != 0 } {
@@ -329,7 +329,7 @@ impl<'a> Term<'a> {
     pub fn get_dict_tag(&self) -> PrologResult<Option<Atom>> {
         self.assert_term_handling_possible();
 
-        if unsafe { fli::PL_is_dict(self.term_ptr()) == 0 } {
+        if unsafe { !fli::PL_is_dict(self.term_ptr()) } {
             Err(PrologError::Failure)
         } else if let Some(atom) = attempt_opt(self.get_arg(1))? {
             Ok(Some(atom))
@@ -352,7 +352,7 @@ impl<'a> Term<'a> {
             panic!("terms being unified are not part of the same engine");
         }
 
-        if unsafe { fli::PL_is_dict(self.term_ptr()) == 0 } {
+        if unsafe { !fli::PL_is_dict(self.term_ptr()) } {
             Err(PrologError::Failure)
         } else {
             self.unify_arg(1, term)
@@ -362,7 +362,7 @@ impl<'a> Term<'a> {
     /// Returns true if this term reference holds a dictionary.
     pub fn is_dict(&self) -> bool {
         self.assert_term_handling_possible();
-        unsafe { fli::PL_is_dict(self.term_ptr()) != 0 }
+        unsafe { fli::PL_is_dict(self.term_ptr()) }
     }
 }
 
