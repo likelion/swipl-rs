@@ -204,7 +204,7 @@ pub unsafe fn register_foreign_in_module(
         c_module_ptr,
         c_name.as_ptr(),
         arity as c_int,
-        Some(converted_function_ptr),
+        converted_function_ptr,
         flags.try_into().unwrap(),
         c_meta.map(|m| m.as_ptr()).unwrap_or_else(std::ptr::null),
     )
